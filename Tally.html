@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Age Tally Form</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #f0f4f8;
+            color: #333;
+            line-height: 1.6;
+            margin: 0;
+            display: flex;
+        }
+        .summary-pane {
+            width: 200px;
+            background-color: #2c3e50;
+            color: white;
+            padding: 20px;
+            overflow-y: auto;
+            height: 100vh;
+            position: fixed;
+            box-sizing: border-box;
+        }
+        .summary-pane.left {
+            left: 0;
+        }
+        .summary-pane.right {
+            right: 0;
+        }
+        .main-content {
+            flex-grow: 1;
+            padding: 20px;
+            margin: 0 220px;
+        }
+        h1, h2 {
+            color: #2c3e50;
+            text-align: center;
+            font-size: 1.5em;
+            margin-bottom: 15px;
+        }
+        .summary h2 {
+            color: white;
+        }
+        p {
+            text-align: center;
+            color: #7f8c8d;
+            margin-bottom: 20px;
+            font-size: 0.9em;
+        }
+        .logo {
+            display: block;
+            margin: 0 auto 7px;
+            max-width: 100px;
+        }
+        .age-container {
+            display: inline-block;
+            margin: 3px;
+            text-align: center;
+        }
+        .age-button {
+            padding: 6px;
+            background-color: #3498db;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .age-button:hover {
+            background-color: #2980b9;
+            transform: translateY(-2px);
+            box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
+        }
+        .minus-button {
+            display: block;
+            margin: 2px auto;
+            width: 16px;
+            height: 16px;
+            background-color: #e74c3c;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 10px;
+            line-height: 1;
+            transition: all 0.3s ease;
+        }
+        .minus-button:hover {
+            background-color: #c0392b;
+            transform: scale(1.1);
+        }
+        .age-count {
+            font-weight: bold;
+            color: #fff;
+            font-size: 14px;
+            margin-bottom: 2px;
+        }
+        .age-number {
+            color: #fff;
+            font-size: 20px;
+        }
+        .count-display {
+            font-size: 12px;
+            color: #2c3e50;
+        }
+        .summary-item {
+            background-color: #34495e;
+            padding: 8px 12px;
+            border-radius: 4px;
+            margin: 3px 0;
+            font-size: 14px;
+        }
+        .sex-selector {
+            text-align: center;
+            margin-bottom: 10px;
+        }
+        .sex-button {
+            padding: 10px 20px;
+            margin: 0 10px;
+            font-size: 16px;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            transition: all 0.3s ease;
+        }
+        .sex-button.active {
+            background-color: #2ecc71;
+            color: white;
+        }
+        .pane-heading {
+            color: #ecf0f1;
+            text-align: center;
+            font-size: 1.2em;
+            margin-bottom: 10px;
+            border-bottom: 2px solid #ecf0f1;
+            padding-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="summary-pane left">
+        <h2 class="pane-heading">Female</h2>
+        <div id="femaleSummaryResults"></div>
+    </div>
+    <div class="main-content">
+        <img src="D:/Backup/Mdh.png" alt="Logo" class="logo">
+        <h1>Age Tally Form</h1>
+        <div class="sex-selector">
+            <button id="femaleButton" class="sex-button">Female</button>
+            <button id="maleButton" class="sex-button">Male</button>
+        </div>
+        <p>Tap age to increment. Use minus button to decrement.</p>
+        <div id="ageButtons"></div>
+    </div>
+    <div class="summary-pane right">
+        <h2 class="pane-heading">Male</h2>
+        <div id="maleSummaryResults"></div>
+    </div>
+
+    <script>
+        const ages = Array.from({length: 101}, (_, i) => i);
+        const femaleAgeCounts = new Map(ages.map(age => [age, 0]));
+        const maleAgeCounts = new Map(ages.map(age => [age, 0]));
+        let currentSex = 'female';
+
+        const ageGroups = {
+			'<1': [0], 
+			'1-4': [1, 2, 3, 4],
+			'5-9': [5, 6, 7, 8, 9],
+            '10-14': [10, 11, 12, 13, 14],
+            '15-19': [15, 16, 17, 18, 19],
+            '20-24': [20, 21, 22, 23, 24],
+            '25-29': [25, 26, 27, 28, 29],
+            '30-34': [30, 31, 32, 33, 34],
+            '35-39': [35, 36, 37, 38, 39],
+            '40-44': [40, 41, 42, 43, 44],
+            '45-49': [45, 46, 47, 48, 49],
+            '50+': Array.from({length: 51}, (_, i) => i + 50)
+        };
+
+        function createAgeButtons() {
+            const container = document.getElementById('ageButtons');
+            ages.forEach(age => {
+                const ageContainer = document.createElement('div');
+                ageContainer.className = 'age-container';
+
+                const minusButton = document.createElement('button');
+                minusButton.className = 'minus-button';
+                minusButton.textContent = '-';
+                minusButton.onclick = () => changeAgeCount(age, -1);
+
+                const ageButton = document.createElement('div');
+                ageButton.className = 'age-button';
+                ageButton.innerHTML = `<span class="age-count" data-age="${age}">0</span><span class="age-number">${age}</span>`;
+                ageButton.onclick = () => changeAgeCount(age, 1);
+
+                const countDisplay = document.createElement('div');
+                countDisplay.className = 'count-display';
+                countDisplay.textContent = '0';
+
+                ageContainer.appendChild(ageButton);
+                ageContainer.appendChild(minusButton);
+                ageContainer.appendChild(countDisplay);
+                container.appendChild(ageContainer);
+            });
+        }
+
+        function changeAgeCount(age, change) {
+            const ageCounts = currentSex === 'female' ? femaleAgeCounts : maleAgeCounts;
+            let count = ageCounts.get(age) + change;
+            count = Math.max(0, count);
+            ageCounts.set(age, count);
+            updateAgeDisplay(age);
+            updateSummary();
+        }
+
+        function updateAgeDisplay(age) {
+            const ageCounts = currentSex === 'female' ? femaleAgeCounts : maleAgeCounts;
+            const ageCount = document.querySelector(`.age-count[data-age="${age}"]`);
+            const countDisplay = ageCount.parentElement.nextElementSibling.nextElementSibling;
+            if (ageCount && countDisplay) {
+                ageCount.textContent = ageCounts.get(age);
+                countDisplay.textContent = `Taps: ${ageCounts.get(age)}`;
+            }
+        }
+
+        function updateSummary() {
+            updateSexSummary('female');
+            updateSexSummary('male');
+        }
+
+        function updateSexSummary(sex) {
+            const summaryContainer = document.getElementById(`${sex}SummaryResults`);
+            summaryContainer.innerHTML = '';
+            const ageCounts = sex === 'female' ? femaleAgeCounts : maleAgeCounts;
+            
+            for (const [group, ageRange] of Object.entries(ageGroups)) {
+                const count = ageRange.reduce((sum, age) => sum + ageCounts.get(age), 0);
+                const div = document.createElement('div');
+                div.className = 'summary-item';
+                div.textContent = `${group}: ${count}`;
+                summaryContainer.appendChild(div);
+            }
+        }
+
+        function setSex(sex) {
+            currentSex = sex;
+            document.getElementById('femaleButton').classList.toggle('active', sex === 'female');
+            document.getElementById('maleButton').classList.toggle('active', sex === 'male');
+            ages.forEach(age => updateAgeDisplay(age));
+        }
+
+        document.getElementById('femaleButton').onclick = () => setSex('female');
+        document.getElementById('maleButton').onclick = () => setSex('male');
+
+        createAgeButtons();
+        updateSummary();
+        setSex('female');
+    </script>
+</body>
+</html>
